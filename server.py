@@ -9,11 +9,15 @@ mysql = MySQLConnector(app, 'logindb')
 # Route to the login/registration page
 @app.route('/')
 def index():
+    if 'logged_in' not in session:
+        session['logged_in'] = 0
+    elif session['logged_in'] == 1:
+        flash('You are currently logged in xD')
     return render_template('index.html')
 
-#Route to process the login/registration information
+#Route to process the registration information
 @app.route('/register', methods=['POST'])
-def process():
+def register():
     first_name = request.form['first_name']
     last_name = request.form['last_name']
     email = request.form['email']
@@ -61,12 +65,13 @@ def process():
     exists = mysql.query_db(query,data)
     # If the email trying to be registered does not exist in the db, create the new user
     if exists == []:
-        query = 'INSERT INTO users (first_name, last_name, email, password, created_at, updated_at) VALUES (:first_name, :last_name, :email, :password, now(), now());'
+        query = 'INSERT INTO users (first_name, last_name, email, password, salt, created_at, updated_at) VALUES (:first_name, :last_name, :email, :password, :salt, now(), now());'
         data = {
             'first_name': first_name,
             'last_name': last_name,
             'email': email,
-            'password': hashed_password
+            'password': hashed_password,
+            'salt': salt
         }
         mysql.query_db(query,data)
     # If the email trying to be registered does exist in the db, do not create the new user and send back to registration page
@@ -77,9 +82,39 @@ def process():
 
     return redirect('/success')
 
+# Route to check and see if the information being sent to login matches the db
+@app.route('/login', methods=['POST'])
+def login():
+    email = request.form['email']
+    password = request.form['password']
+    user_query = "SELECT * FROM users WHERE users.email = :email LIMIT 1"
+    query_data = {'email': email}
+    user = mysql.query_db(user_query, query_data)
+    
+    if len(user) != 0:
+        encrypted_password = md5.new(password + user[0]['salt']).hexdigest()
+    if user[0]['password'] == encrypted_password:
+        # this means we have a successful login!
+        session['logged_in'] = 1
+        return redirect('/success')
+    else:
+        # invalid password!
+        flash('Invalid email or password')
+        return redirect('/')
+
+    return redirect('/success')
+
+
+
 # Route to the success/confirmation page
 @app.route('/success')
 def success():
     return render_template('success.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('You have logged out xp')
+    return redirect('/')
 
 app.run(debug=True)
