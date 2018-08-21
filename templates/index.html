@@ -9,7 +9,7 @@
 <body>
     <!-- Start Login Form -->
     <h1>Please Login</h1>
-    <form action="/process" method="POST">
+    <form action="/login" method="POST">
         <label for="email">Email: </label>
         <input type="email" name="email">
         <br><br>
@@ -19,6 +19,7 @@
         <input type="submit" value="Login">
     </form>
     <br>
+    <!-- Start of required templating to show flash messages -->
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             <ul>
@@ -29,11 +30,13 @@
         {% endif %}
     {% endwith %}
     <hr>
+    <!-- End of required templating to show flash messages -->
+
     <!-- End Login Form -->
 
     <!-- Start Registration Form -->
     <h1>If you have not created an account, please register below</h1>
-    <form action="/process" method="POST">
+    <form action="/register" method="POST">
         <label for="first_name">First Name: </label>
         <input type="text" name="first_name">
         <br><br>
@@ -52,7 +55,7 @@
         <input type="submit" value="Submit">
     </form>
     <br><br>
-    <a href="/success">Link to success page for testing</a>
+    <a href="/register">Link to success page for testing</a>
     <!-- End Registration Form -->
 </body>
 </html>
