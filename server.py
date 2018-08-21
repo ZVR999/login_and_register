@@ -1,6 +1,6 @@
 from flask import Flask, render_template, session, redirect, request, flash
 from mysqlconnection import MySQLConnector
-import re
+import re, md5, os, binascii 
 EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$')
 # r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)" from emailregex.com
 app = Flask(__name__)
@@ -19,6 +19,9 @@ def process():
     email = request.form['email']
     password = request.form['password']
     confirm_password = request.form['confirm_password']
+    salt =  binascii.b2a_hex(os.urandom(15))
+    hashed_password = md5.new(password + salt).hexdigest()
+    print hashed_password
     # First Name validation
     if len(first_name) < 2:
         flash('First Name must be longer than 2 characters')
