@@ -19,6 +19,15 @@
         <input type="submit" value="Login">
     </form>
     <br>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
     <hr>
     <!-- End Login Form -->
 
