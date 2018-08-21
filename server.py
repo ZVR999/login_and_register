@@ -12,16 +12,18 @@ def index():
     return render_template('index.html')
 
 #Route to process the login/registration information
-@app.route('/process', methods=['POST'])
+@app.route('/register', methods=['POST'])
 def process():
     first_name = request.form['first_name']
     last_name = request.form['last_name']
     email = request.form['email']
     password = request.form['password']
     confirm_password = request.form['confirm_password']
+
     salt =  binascii.b2a_hex(os.urandom(15))
     hashed_password = md5.new(password + salt).hexdigest()
-    print hashed_password
+    # print hashed_password
+
     # First Name validation
     if len(first_name) < 2:
         flash('First Name must be longer than 2 characters')
@@ -49,6 +51,30 @@ def process():
         flash('Password and Confirm Password do not match')
         return redirect('/')
     print first_name, last_name, email, password
+    
+    # Registration
+    # Check to see if there are any current users with an email that's trying to be registered
+    query = 'SELECT * FROM users WHERE users.email = :email;'
+    data = {
+        'email': email
+    }
+    exists = mysql.query_db(query,data)
+    # If the email trying to be registered does not exist in the db, create the new user
+    if exists == []:
+        query = 'INSERT INTO users (first_name, last_name, email, password, created_at, updated_at) VALUES (:first_name, :last_name, :email, :password, now(), now());'
+        data = {
+            'first_name': first_name,
+            'last_name': last_name,
+            'email': email,
+            'password': hashed_password
+        }
+        mysql.query_db(query,data)
+    # If the email trying to be registered does exist in the db, do not create the new user and send back to registration page
+    else:
+        flash('There is a user already created with this email')
+        return redirect('/')
+    
+
     return redirect('/success')
 
 # Route to the success/confirmation page
